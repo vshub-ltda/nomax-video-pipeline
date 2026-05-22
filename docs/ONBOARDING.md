@@ -30,8 +30,10 @@ bash $(claude plugin path nomax-video-pipeline)/scripts/install-deps.sh
 Vai instalar (se não estiver presente):
 - `ffmpeg-full` (com libass + ProRes + AOM/x265)
 - `pipx` + `openai-whisper`
+- `python3` + venv interno em `skills/video-use/.venv`
 - `node@20`
-- `video-use` em `~/Developer/video-use/`
+
+**video-use vem bundled no plugin** — não há clone externo nem versão divergente entre máquinas do time.
 
 ## 3. Configurar API keys
 

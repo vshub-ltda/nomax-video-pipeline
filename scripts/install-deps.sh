@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 # nomax-video-pipeline — installer de dependências de sistema
 # Roda 1x por máquina. Idempotente: pode rodar de novo sem quebrar nada.
+#
+# video-use é VENDORED dentro deste plugin em skills/video-use/ —
+# este script só instala dependências de sistema e configura o venv interno.
 
 set -euo pipefail
 
@@ -12,8 +15,17 @@ err()  { printf "${RED}[x] ${NC}  %s\n" "$*"; exit 1; }
 
 # ---------- platform check ----------
 if [[ "$(uname -s)" != "Darwin" ]]; then
-  err "Este installer é Mac-only por ora. Para Linux, instalar manualmente: ffmpeg (com libass), pipx, openai-whisper, node 20+."
+  err "Este installer é Mac-only por ora. Para Linux, instalar manualmente: ffmpeg (com libass), pipx, openai-whisper, node 20+ e venv em skills/video-use/."
 fi
+
+# ---------- localiza plugin root ----------
+PLUGIN_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+VIDEO_USE_DIR="${PLUGIN_ROOT}/skills/video-use"
+
+if [[ ! -d "$VIDEO_USE_DIR" ]]; then
+  err "video-use não encontrado em $VIDEO_USE_DIR — plugin está incompleto. Reinstale: /plugin install vshub-ltda/nomax-video-pipeline"
+fi
+log "plugin root: $PLUGIN_ROOT"
 
 # ---------- homebrew ----------
 if ! command -v brew >/dev/null 2>&1; then
@@ -44,25 +56,34 @@ if ! pipx list 2>/dev/null | grep -q openai-whisper; then
 fi
 log "openai-whisper ok"
 
-# ---------- node (para video-use se ainda não tiver) ----------
+# ---------- python3 (para criar venv do video-use) ----------
+if ! command -v python3 >/dev/null 2>&1; then
+  warn "python3 não encontrado — instalando python via brew"
+  brew install python@3.12
+fi
+log "python3 $(python3 --version | awk '{print $2}') ok"
+
+# ---------- node (para video-use rendering helpers se necessário) ----------
 if ! command -v node >/dev/null 2>&1; then
   warn "node não encontrado — instalando node 20"
   brew install node@20
 fi
 log "node $(node -v) ok"
 
-# ---------- video-use ----------
-VIDEO_USE_DIR="${HOME}/Developer/video-use"
-if [[ ! -d "$VIDEO_USE_DIR" ]]; then
-  warn "video-use não encontrado em $VIDEO_USE_DIR — clonando"
-  mkdir -p "${HOME}/Developer"
-  git clone https://github.com/browser-use/video-use.git "$VIDEO_USE_DIR"
-  pushd "$VIDEO_USE_DIR" >/dev/null
-  python3 -m venv .venv
-  ./.venv/bin/pip install -r requirements.txt
-  popd >/dev/null
+# ---------- venv do video-use bundled ----------
+if [[ ! -d "$VIDEO_USE_DIR/.venv" ]]; then
+  warn "criando venv para video-use em $VIDEO_USE_DIR/.venv"
+  python3 -m venv "$VIDEO_USE_DIR/.venv"
 fi
-log "video-use em $VIDEO_USE_DIR"
+log "venv do video-use ok"
+
+# instalar/atualizar dependências do video-use
+if [[ -f "$VIDEO_USE_DIR/pyproject.toml" ]]; then
+  log "instalando video-use no venv interno (~2-3 min na primeira vez)"
+  "$VIDEO_USE_DIR/.venv/bin/pip" install --upgrade pip --quiet
+  "$VIDEO_USE_DIR/.venv/bin/pip" install -e "$VIDEO_USE_DIR" --quiet
+  log "video-use deps instaladas"
+fi
 
 # ---------- env keys ----------
 echo
@@ -79,4 +100,5 @@ if [[ -z "${OPENAI_API_KEY:-}" ]]; then
 fi
 
 echo
-log "install-deps.sh concluído. Veja docs/ONBOARDING.md para o primeiro corte."
+log "install-deps.sh concluído. video-use bundled em $VIDEO_USE_DIR"
+log "Próximo passo: abra Claude Code no diretório do seu projeto e converse."
