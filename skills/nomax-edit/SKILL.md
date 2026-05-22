@@ -1,42 +1,57 @@
 ---
 name: nomax-edit
-description: NÔMAX podcast clip production pipeline (rough + fine cut). Cut, reframe 9:16/16:9, surgical stutter removal, speaker-follow multi-cam, color grade, loudnorm broadcast-grade. Use when the user mentions "corte de podcast", "editar clipe", "podcast clip", "Bureau Social", "rough cut", "fine cut", or references this pipeline. Pairs with clip-selector (curatorial) and video-use (transcribe + render canonical).
+description: NÔMAX podcast clip pipeline — curadoria + rough cut + fine cut, em modo conversacional. Para quando o usuário menciona "corte de podcast", "curadoria de cortes", "tabela de cortes", "podcast clip", "rough cut", "fine cut", "Bureau Social", ou pede pra olhar um podcast e levantar momentos. Pareia com clip-selector (curatorial) e video-use (transcribe + render canonical).
 ---
 
-# nomax-edit — Pipeline NÔMAX de produção de cortes
+# nomax-edit — Pipeline NÔMAX de cortes de podcast
 
-Sistema completo de produção de podcast clips, do bruto ao final aprovado. Foco em rough cut + fine cut. Captions kinéticas ficam fora do escopo desta skill (decisão: investir tempo em referência antes de automatizar — ver `docs/captions-deferred.md` do plugin).
+Sistema completo, **conversacional**, para trabalho de podcast clips. Cobre desde curadoria pura (tabela de candidatos para editor humano) até fine cut renderizado pronto para post.
 
-## Quando usar
+## Modo de interação — conversacional, não comando-driven
 
-Quando o trabalho envolve:
-- Cortar segmentos de podcast bruto pra social (9:16) ou VSL (16:9)
-- Trim de silêncios + cortes cirúrgicos de stutters
-- Reframe seguindo locutor (multi-speaker)
-- Color grade automático + loudnorm broadcast-grade -14 LUFS
+O time NÔMAX interage com este pipeline em linguagem natural. Não force slash commands a menos que o usuário explicitamente peça por eles. Quando alguém disser algo como:
 
-## Pipeline (8 camadas, sem captions)
+- "Tenho um podcast aqui, quero curar os cortes"
+- "Faz o fine cut do c03 com speaker-follow"
+- "Esse corte aqui tá com stutter, dá uma olhada"
+
+→ Conduza a conversa: pergunte o que falta (path, slug, modo), execute o passo certo, devolva o resultado. Use o pipeline declarado abaixo como guia interno.
+
+## Os 3 modos de trabalho
+
+| Modo | Output | Quando aplica |
+|---|---|---|
+| **1. Curadoria pura** | Tabela markdown em `edit/clip_candidates.md` (ver SOP 05) | Quando o usuário só quer levantar candidatos. Editor humano vai cortar depois. **Não extrai MP4.** |
+| **2. Curadoria + rough cut** | Tabela + arquivos em `edit/sources/<clip>.mp4` (reframe aplicado) | Quando o usuário quer adiantar a parte mecânica mas deixar fine cut pro editor humano. |
+| **3. Pipeline completo** | `edit/clips/<clip>_gold.mp4` (post-ready) | Quando o clipe vai direto pra post, sem revisão de editor humano. |
+
+Default em ambiguidade: **Modo 1**. É o mais barato e o mais comum. Confirme antes de subir pra Modo 2 ou 3.
+
+## Pipeline interno (8 camadas)
 
 ```
 1. Inventário ffprobe → metadata do bruto
 2. Transcrição Scribe (texto + diarização speaker_id por palavra)
-3. Seleção via clip-selector (Hook+Payload + 4-eixos)
+3. Seleção via clip-selector (Hook+Payload + scoring 4-eixos)
+   ← Modo 1 PARA aqui (output: tabela)
 4. Pré-processo: cut + reframe 9:16 ou keep 16:9
+   ← Modo 2 PARA aqui (output: tabela + MP4s)
 5. silence_trim.py: silences auto + extra-cuts cirúrgicos + drop-tokens
 6. EDL declarativa (sources, ranges, grade, fps) — multi-source pra speaker-follow
 7. render_local.py (extract → concat → loudnorm -14 LUFS)
-8. Verificação: ffprobe + verify_playback (contact sheet) + inspect_audio (seam check)
+8. Verificação: verify_playback (contact sheet) + inspect_audio (seam check)
+   ← Modo 3 PARA aqui (output: <clip>_gold.mp4)
 ```
 
 ## Tools
 
-| Script | Função |
-|---|---|
-| `scripts/inspect_audio.py` | Waveform + silencedetect + Scribe/Whisper divergência → user lê timestamps exatos |
-| `scripts/verify_playback.py` | Contact sheet de N frames distribuídos pra "assistir" o clipe |
-| `scripts/silence_trim.py` | Cuts de silêncio + extra-cut surgical (stutters) + drop-token (fillers) |
-| `scripts/render_local.py` | Fork local de video-use render.py com fps configurável via EDL + multi-source ranges |
-| `scripts/grade.py` | Auto color grade matemático bounded ±8% |
+| Script | Função | Modos onde aparece |
+|---|---|---|
+| `scripts/inspect_audio.py` | Waveform + silencedetect + Scribe/Whisper divergência | 3 (fine cut) |
+| `scripts/verify_playback.py` | Contact sheet de N frames pra "assistir" o clipe | 3 |
+| `scripts/silence_trim.py` | Cuts de silêncio + extra-cut surgical + drop-token | 3 |
+| `scripts/render_local.py` | Fork local de video-use render.py com fps configurável + multi-source | 3 |
+| `scripts/grade.py` | Auto color grade matemático bounded ±8% | 3 |
 
 ## Project layout esperado
 
@@ -46,30 +61,42 @@ Quando o trabalho envolve:
 └── edit/
     ├── transcripts/
     │   ├── <source>.json           ← Scribe
-    │   └── whisper_<clip>.json     ← Whisper word-level (opcional, fine cut)
+    │   └── whisper_<clip>.json     ← Whisper word-level (opcional)
+    ├── clip_candidates.md          ← TABELA editorial (Modo 1 output)
     ├── sources/
-    │   ├── <clip>.mp4              ← speaker A reframe
+    │   ├── <clip>.mp4              ← Modo 2 output: speaker A reframe
     │   └── <clip>_<speakerB>.mp4   ← speaker B reframe (multi-cam)
-    ├── clip_candidates.json        ← do clip-selector
-    ├── <clip>_edl.json             ← declarativa
+    ├── <clip>_edl.json             ← declarativa (Modo 3)
     ├── work/                       ← scripts + intermediários
     ├── inspect/<clip>/             ← dossiers do inspect_audio
     └── clips/
-        └── <clip>_gold.mp4         ← output final
+        └── <clip>_gold.mp4         ← Modo 3 output: post-ready
 ```
 
 ## SOPs obrigatórios
 
-Antes de QUALQUER edição surgical ou estética, ler:
-- `sops/01-editorial-vs-technical.md` — pedidos editoriais não-explícitos → inventário ao editor, não chutar
+Antes de qualquer ação não-trivial, ler:
+- `sops/01-editorial-vs-technical.md` — pedidos editoriais → inventário ao usuário, não chutar
 - `sops/02-reference-first.md` — zero design from scratch, sempre referência
 - `sops/04-speaker-follow.md` — multi-speaker SEMPRE com cam seguindo locutor
+- `sops/05-clip-curation-table.md` — formato canônico da tabela (Modo 1)
 
 ## Hard rules
 
-1. **Nunca chutar cut surgical.** Usar `inspect_audio.py` → pedir marcação ao user.
-2. **Nunca aprovar clipe sem playback verification.** Rodar `verify_playback.py` antes de declarar pronto.
-3. **Nunca design from scratch.** Pedir referência ou perguntar estilo desejado.
-4. **Nunca usar render.py upstream.** Sempre o fork local com fps configurável.
-5. **Nunca clip ≥ 24fps com fonte de fps diferente** (alinhar fps via EDL).
-6. **Sempre cortar pro locutor que está falando.** Voz cega (audio de A sobre imagem fixa de B) é amador. Skip turnos ≤ 800ms (reações tipo "É.", "Sim", "Hum"). Cut 100ms ANTES da fala começar. Ver `sops/04-speaker-follow.md`.
+1. **Default em ambiguidade = Modo 1 (curadoria pura).** Não extraia MP4 nem renderize sem confirmação. Curadoria é barato; rendering é caro e descartável.
+2. **Nunca chutar cut surgical.** Usar `inspect_audio.py` → pedir marcação ao usuário.
+3. **Nunca aprovar clipe Modo 3 sem playback verification.** Rodar `verify_playback.py` antes.
+4. **Nunca design from scratch.** Pedir referência ou perguntar estilo desejado.
+5. **Nunca usar render.py upstream.** Sempre o fork local com fps configurável.
+6. **Alinhar fps via EDL** (default 30 social, ou fps do source).
+7. **Speaker-follow obrigatório em multi-speaker.** Voz cega é amador. Skip turnos ≤ 800ms. Cut 100ms antes da fala.
+
+## Slash commands (atalhos opcionais)
+
+Existem para repetição automatizada — não são a interface primária.
+
+- `/nomax-transcribe <video>` — só transcrição Scribe
+- `/nomax-clip-rough <slug> [n]` — Modo 2 (tabela + MP4s)
+- `/nomax-clip-fine <slug> <clip>` — Modo 3 (fine cut completo)
+
+Para Modo 1 (curadoria pura, sem MP4), peça em conversa: "curadoria de N cortes do projeto X".
