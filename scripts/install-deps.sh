@@ -15,7 +15,15 @@ err()  { printf "${RED}[x] ${NC}  %s\n" "$*"; exit 1; }
 
 # ---------- platform check ----------
 if [[ "$(uname -s)" != "Darwin" ]]; then
-  err "Este installer é Mac-only por ora. Para Linux, instalar manualmente: ffmpeg (com libass), pipx, openai-whisper, node 20+ e venv em skills/video-use/."
+  warn "Este installer automatiza setup via Homebrew (Mac). Em outros OS, instale manualmente:"
+  echo "  - Linux:   sudo apt install ffmpeg python3 python3-venv python3-pip nodejs"
+  echo "             pipx install openai-whisper"
+  echo "  - Windows: choco install ffmpeg python nodejs"
+  echo "             pip install openai-whisper"
+  echo "  Depois crie venv em skills/video-use/ manualmente:"
+  echo "    cd \$(claude plugin path nomax-video-pipeline)/skills/video-use"
+  echo "    python3 -m venv .venv && .venv/bin/pip install -e ."
+  exit 0
 fi
 
 # ---------- localiza plugin root ----------

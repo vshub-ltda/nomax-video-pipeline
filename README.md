@@ -20,23 +20,42 @@ Modo de uso: **conversacional**. Você abre o Claude Code no diretório do proje
 ## Não tem (ainda)
 
 - **Captions kinéticas** — fora do escopo desta versão. Decisão documentada em [docs/captions-deferred.md](docs/captions-deferred.md). Use CapCut/Premiere manual após o fine cut.
-- **Linux installer** — só macOS por ora.
-- **Windows** — sem planos.
 
 ## Instalação (uma vez)
+
+Funciona em **Mac, Linux ou Windows**. O plugin é cross-platform; só os comandos de instalação de dependências mudam por OS.
+
+### 1. Instalar o plugin (qualquer OS)
 
 ```bash
 # dentro do Claude Code:
 /plugin install vshub-ltda/nomax-video-pipeline
+```
 
-# depois, no terminal:
-bash $(claude plugin path nomax-video-pipeline)/scripts/install-deps.sh
+### 2. Instalar dependências de sistema
 
-# adicionar no ~/.zshrc:
+| OS | Comando |
+|---|---|
+| **Mac** | `bash $(claude plugin path nomax-video-pipeline)/scripts/install-deps.sh` |
+| **Linux (Debian/Ubuntu)** | `sudo apt install ffmpeg python3 python3-venv python3-pip nodejs && pipx install openai-whisper` |
+| **Windows** | `choco install ffmpeg python nodejs` (PowerShell admin) + `pip install openai-whisper` |
+
+### 3. Criar venv do video-use (Linux/Windows apenas — o installer Mac faz sozinho)
+
+```bash
+cd $(claude plugin path nomax-video-pipeline)/skills/video-use
+python3 -m venv .venv
+.venv/bin/pip install -e .
+```
+
+### 4. ElevenLabs API key
+
+```bash
+# adicionar no ~/.zshrc (Mac/Linux) ou nas env vars do Windows:
 export ELEVENLABS_API_KEY='sk_...'
 ```
 
-A segunda etapa configura: `ffmpeg-full`, `pipx`, `openai-whisper`, `python3`, `node@20`, e cria o **venv interno em `skills/video-use/.venv`**. video-use NÃO é clonado de fora — vem bundled no plugin.
+video-use é **bundled** no plugin (`skills/video-use/`) — não há clone externo nem divergência entre máquinas do time.
 
 Detalhes do primeiro corte: [docs/ONBOARDING.md](docs/ONBOARDING.md).
 
