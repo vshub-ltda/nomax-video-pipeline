@@ -1,0 +1,14 @@
+{
+  "name": "nomax-video-pipeline",
+  "owner": {
+    "name": "NÔMAX (VSHUB)",
+    "url": "https://github.com/vshub-ltda"
+  },
+  "plugins": [
+    {
+      "name": "nomax-video-pipeline",
+      "source": "./",
+      "description": "Pipeline NÔMAX de produção de cortes de podcast (curadoria + rough cut + fine cut), em modo conversacional."
+    }
+  ]
+}
