@@ -27,10 +27,25 @@ Funciona em **Mac, Linux ou Windows**. O plugin é cross-platform; só os comand
 
 ### 1. Instalar o plugin (qualquer OS)
 
+Requer **Claude Code v2.1.128+**. Atualize antes se necessário:
+- Mac: `brew upgrade claude-code`
+- npm: `npm install -g @anthropic-ai/claude-code@latest`
+
+Dentro do Claude Code, são **dois comandos**:
+
 ```bash
-# dentro do Claude Code:
-/plugin install vshub-ltda/nomax-video-pipeline
+/plugin marketplace add vshub-ltda/nomax-video-pipeline
+/plugin install nomax-video-pipeline@nomax-video-pipeline
 ```
+
+**Fallback manual** (se `/plugin` não estiver disponível no seu ambiente):
+
+```bash
+git clone https://github.com/vshub-ltda/nomax-video-pipeline.git \
+  ~/.claude/plugins/nomax-video-pipeline
+```
+
+Reinicie Claude Code depois.
 
 ### 2. Instalar dependências de sistema
 

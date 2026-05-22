@@ -16,7 +16,8 @@ Guia do primeiro corte. Tempo estimado: ~25min (instalação) + 20min (primeiro 
 # A partir de qualquer pasta:
 claude
 # dentro do Claude Code:
-/plugin install vshub-ltda/nomax-video-pipeline
+/plugin marketplace add vshub-ltda/nomax-video-pipeline
+/plugin install nomax-video-pipeline@nomax-video-pipeline
 ```
 
 Reinicie o Claude Code para registrar skills e slash-commands.
