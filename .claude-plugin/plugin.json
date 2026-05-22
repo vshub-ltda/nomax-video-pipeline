@@ -1,0 +1,12 @@
+{
+  "name": "nomax-video-pipeline",
+  "version": "0.1.0",
+  "description": "Pipeline NÔMAX de produção de cortes de podcast (rough + fine cut). Empacota a skill nomax-edit, slash-commands de alto nível e scripts auxiliares.",
+  "author": {
+    "name": "NÔMAX (VSHUB)",
+    "url": "https://github.com/vshub-ltda/nomax-video-pipeline"
+  },
+  "license": "UNLICENSED",
+  "homepage": "https://github.com/vshub-ltda/nomax-video-pipeline",
+  "keywords": ["nomax", "podcast", "video", "edit", "captions", "9:16", "vsl"]
+}
