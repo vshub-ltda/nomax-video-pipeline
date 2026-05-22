@@ -56,7 +56,7 @@ VIDEO_USE_DIR="${HOME}/Developer/video-use"
 if [[ ! -d "$VIDEO_USE_DIR" ]]; then
   warn "video-use não encontrado em $VIDEO_USE_DIR — clonando"
   mkdir -p "${HOME}/Developer"
-  git clone https://github.com/anthropics/video-use.git "$VIDEO_USE_DIR"
+  git clone https://github.com/browser-use/video-use.git "$VIDEO_USE_DIR"
   pushd "$VIDEO_USE_DIR" >/dev/null
   python3 -m venv .venv
   ./.venv/bin/pip install -r requirements.txt
