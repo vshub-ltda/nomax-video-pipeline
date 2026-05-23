@@ -4,6 +4,9 @@
 #
 # video-use é VENDORED dentro deste plugin em skills/video-use/ —
 # este script só instala dependências de sistema e configura o venv interno.
+#
+# Stack mínima: ffmpeg + python3 + node + venv do video-use + ElevenLabs API key.
+# Transcrição é 100% via ElevenLabs Scribe (hosted) — sem Whisper.
 
 set -euo pipefail
 
@@ -17,9 +20,7 @@ err()  { printf "${RED}[x] ${NC}  %s\n" "$*"; exit 1; }
 if [[ "$(uname -s)" != "Darwin" ]]; then
   warn "Este installer automatiza setup via Homebrew (Mac). Em outros OS, instale manualmente:"
   echo "  - Linux:   sudo apt install ffmpeg python3 python3-venv python3-pip nodejs"
-  echo "             pipx install openai-whisper"
   echo "  - Windows: choco install ffmpeg python nodejs"
-  echo "             pip install openai-whisper"
   echo "  Depois crie venv em skills/video-use/ manualmente:"
   echo "    cd \$(claude plugin path nomax-video-pipeline)/skills/video-use"
   echo "    python3 -m venv .venv && .venv/bin/pip install -e ."
@@ -31,7 +32,7 @@ PLUGIN_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 VIDEO_USE_DIR="${PLUGIN_ROOT}/skills/video-use"
 
 if [[ ! -d "$VIDEO_USE_DIR" ]]; then
-  err "video-use não encontrado em $VIDEO_USE_DIR — plugin está incompleto. Reinstale: /plugin install vshub-ltda/nomax-video-pipeline"
+  err "video-use não encontrado em $VIDEO_USE_DIR — plugin está incompleto. Reinstale o plugin."
 fi
 log "plugin root: $PLUGIN_ROOT"
 
@@ -41,37 +42,21 @@ if ! command -v brew >/dev/null 2>&1; then
 fi
 log "homebrew presente"
 
-# ---------- ffmpeg-full (com libass, mov-pro-res, etc) ----------
-if [[ ! -x /opt/homebrew/opt/ffmpeg-full/bin/ffmpeg ]]; then
-  warn "ffmpeg-full não encontrado em /opt/homebrew/opt/ffmpeg-full — instalando (pode demorar)"
-  brew tap homebrew-ffmpeg/ffmpeg
-  brew install homebrew-ffmpeg/ffmpeg/ffmpeg --with-libass --with-aom --with-x265
+# ---------- ffmpeg (qualquer build com libass serve; ffmpeg-full é preferido pra ProRes) ----------
+if ! command -v ffmpeg >/dev/null 2>&1; then
+  warn "ffmpeg não encontrado — instalando via brew (pode demorar)"
+  brew install ffmpeg
 fi
-log "ffmpeg-full ok"
+log "ffmpeg ok ($(ffmpeg -version | head -1 | awk '{print $3}'))"
 
-# ---------- pipx ----------
-if ! command -v pipx >/dev/null 2>&1; then
-  warn "pipx não encontrado — instalando"
-  brew install pipx
-  pipx ensurepath
-fi
-log "pipx ok"
-
-# ---------- openai-whisper (timing word-level para fine cut) ----------
-if ! pipx list 2>/dev/null | grep -q openai-whisper; then
-  warn "openai-whisper não instalado via pipx — instalando"
-  pipx install openai-whisper
-fi
-log "openai-whisper ok"
-
-# ---------- python3 (para criar venv do video-use) ----------
+# ---------- python3 (para venv do video-use) ----------
 if ! command -v python3 >/dev/null 2>&1; then
   warn "python3 não encontrado — instalando python via brew"
   brew install python@3.12
 fi
 log "python3 $(python3 --version | awk '{print $2}') ok"
 
-# ---------- node (para video-use rendering helpers se necessário) ----------
+# ---------- node (para helpers JS de render se necessário) ----------
 if ! command -v node >/dev/null 2>&1; then
   warn "node não encontrado — instalando node 20"
   brew install node@20
@@ -93,18 +78,18 @@ if [[ -f "$VIDEO_USE_DIR/pyproject.toml" ]]; then
   log "video-use deps instaladas"
 fi
 
-# ---------- env keys ----------
+# ---------- ElevenLabs API key ----------
 echo
 echo "Próximo passo — environment:"
-if [[ -z "${ELEVENLABS_API_KEY:-}" ]]; then
-  warn "ELEVENLABS_API_KEY não setada. Adicione no seu shell rc:"
-  echo "    export ELEVENLABS_API_KEY='sk_...'"
+if [[ -z "${ELEVENLABS_API_KEY:-}" ]] && [[ ! -f "$VIDEO_USE_DIR/.env" ]]; then
+  warn "ELEVENLABS_API_KEY não encontrada (nem em env, nem em $VIDEO_USE_DIR/.env)"
+  echo "    Pegue uma chave free em: https://elevenlabs.io/app/settings/api-keys"
+  echo "    Depois adicione no seu shell rc:"
+  echo "      export ELEVENLABS_API_KEY='sk_...'"
+  echo "    Ou grave em $VIDEO_USE_DIR/.env:"
+  echo "      ELEVENLABS_API_KEY=sk_..."
 else
-  log "ELEVENLABS_API_KEY presente"
-fi
-
-if [[ -z "${OPENAI_API_KEY:-}" ]]; then
-  warn "OPENAI_API_KEY não setada (opcional — usada apenas se quiser Whisper API ao invés de local)."
+  log "ElevenLabs API key configurada"
 fi
 
 echo

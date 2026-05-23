@@ -29,8 +29,7 @@ bash $(claude plugin path nomax-video-pipeline)/scripts/install-deps.sh
 ```
 
 Vai instalar (se não estiver presente):
-- `ffmpeg-full` (com libass + ProRes + AOM/x265)
-- `pipx` + `openai-whisper`
+- `ffmpeg` (build padrão; ffmpeg-full opcional pra ProRes)
 - `python3` + venv interno em `skills/video-use/.venv`
 - `node@20`
 
@@ -42,7 +41,6 @@ Adicione no seu `~/.zshrc` (ou `~/.bashrc`):
 
 ```bash
 export ELEVENLABS_API_KEY='sk_...'         # obrigatório
-export OPENAI_API_KEY='sk-...'             # opcional, só se for usar Whisper API
 ```
 
 Recarregue: `source ~/.zshrc`
@@ -113,8 +111,7 @@ Para esta fase: caption manual no CapCut / Premiere após o fine cut, ou esperar
 
 | Sintoma | Causa | Fix |
 |---|---|---|
-| `ffmpeg: filter 'showwavespic' not found` | ffmpeg homebrew default sem libass | Reodar installer; vai trocar pra ffmpeg-full |
-| `pipx: command not found` | PATH não atualizado | `source ~/.zshrc` ou `pipx ensurepath` |
+| `ffmpeg: filter 'showwavespic' not found` | ffmpeg homebrew default sem libass | `brew install homebrew-ffmpeg/ffmpeg/ffmpeg --with-libass` |
 | `ELEVENLABS_API_KEY not set` | Esqueceu de exportar | Adicionar no `.zshrc` |
 | Output em slow motion | EDL com fps != source fps | Verificar `fps` no EDL; usar fps do source ou 30 explícito |
 | Speaker errado em tela | Esqueceu de fazer multi-cam reframe | `/nomax-clip-fine` reroda; gerar `sources/<clip>_<speaker>.mp4` |

@@ -47,7 +47,7 @@ Default em ambiguidade: **Modo 1**. É o mais barato e o mais comum. Confirme an
 
 | Script | Função | Modos onde aparece |
 |---|---|---|
-| `scripts/inspect_audio.py` | Waveform + silencedetect + Scribe/Whisper divergência | 3 (fine cut) |
+| `scripts/inspect_audio.py` | Waveform + silencedetect + Scribe word list (texto+timing). Suporte opcional a Whisper só pra debug de divergência em casos extremos. | 3 (fine cut) |
 | `scripts/verify_playback.py` | Contact sheet de N frames pra "assistir" o clipe | 3 |
 | `scripts/silence_trim.py` | Cuts de silêncio + extra-cut surgical + drop-token | 3 |
 | `scripts/render_local.py` | Fork local de video-use render.py com fps configurável + multi-source | 3 |
@@ -60,8 +60,7 @@ Default em ambiguidade: **Modo 1**. É o mais barato e o mais comum. Confirme an
 ├── <SOURCE>.MP4 (symlink ao bruto)
 └── edit/
     ├── transcripts/
-    │   ├── <source>.json           ← Scribe
-    │   └── whisper_<clip>.json     ← Whisper word-level (opcional)
+    │   └── <source>.json           ← Scribe (ElevenLabs) — texto + diarização speaker_id
     ├── clip_candidates.md          ← TABELA editorial (Modo 1 output)
     ├── sources/
     │   ├── <clip>.mp4              ← Modo 2 output: speaker A reframe

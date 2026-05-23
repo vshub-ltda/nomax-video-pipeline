@@ -26,9 +26,8 @@ Quando o assistant trata pedido editorial como pedido técnico, ele CHUTA timest
 3. **Retornar**: ao user, devolver:
    - Waveform PNG com markers
    - silencedetect ranges (silêncios reais detectados pelo ffmpeg)
-   - Scribe word list com timestamps
-   - Whisper word list com timestamps
-   - Zonas de divergência Scribe/Whisper (= prováveis stutters)
+   - Scribe word list com timestamps (texto + timing + speaker_id)
+   - (Opcional, casos extremos) Whisper word list para cross-check de timing — uso de exceção, não padrão
 4. **Pedir**: marcação precisa (timestamp inicial + final do que cortar)
 5. **Só então** rodar `silence_trim.py --extra-cut "A,B"` com os valores marcados
 

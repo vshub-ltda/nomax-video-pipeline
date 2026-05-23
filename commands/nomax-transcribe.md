@@ -16,6 +16,6 @@ Passos:
 6. Reportar: quantos speakers detectados (Scribe `speaker_id`), duração total, e onde foi salvo o JSON.
 
 Hard rules:
-- Use ElevenLabs Scribe (não Whisper) para o texto principal. Scribe acerta português e faz diarização nativa.
-- Whisper pode ser rodado em paralelo para timing word-level acurado se a fine cut precisar (`inspect_audio.py` aceita ambos).
+- Use **ElevenLabs Scribe** para tudo: texto, timing word-level, diarização. É o que o video-use suporta nativamente.
+- **Não rode Whisper local** — é anti-pattern explícito do video-use (lento, normaliza fillers, perde sub-second gaps). Scribe hosted resolve o caso geral.
 - Se a chave não estiver setada, NÃO chutar — parar e instruir o user a `export ELEVENLABS_API_KEY=...`.

@@ -52,8 +52,8 @@ Reinicie Claude Code depois.
 | OS | Comando |
 |---|---|
 | **Mac** | `bash $(claude plugin path nomax-video-pipeline)/scripts/install-deps.sh` |
-| **Linux (Debian/Ubuntu)** | `sudo apt install ffmpeg python3 python3-venv python3-pip nodejs && pipx install openai-whisper` |
-| **Windows** | `choco install ffmpeg python nodejs` (PowerShell admin) + `pip install openai-whisper` |
+| **Linux (Debian/Ubuntu)** | `sudo apt install ffmpeg python3 python3-venv python3-pip nodejs` |
+| **Windows** | `choco install ffmpeg python nodejs` (PowerShell admin) |
 
 ### 3. Criar venv do video-use (Linux/Windows apenas — o installer Mac faz sozinho)
 
@@ -78,11 +78,12 @@ Detalhes do primeiro corte: [docs/ONBOARDING.md](docs/ONBOARDING.md).
 
 Tudo abaixo é dependência de sistema. O plugin instala ou checa cada uma via `install-deps.sh`:
 
-- `ffmpeg-full` (libass, ProRes, AOM, x265)
+- `ffmpeg` (build padrão do brew/apt já serve; ffmpeg-full opcional pra ProRes)
 - `python3` + venv interno
-- `pipx` + `openai-whisper` (timing word-level)
 - `node@20` (helpers de render se necessário)
-- ElevenLabs Scribe API (texto + diarização) — key via env var
+- ElevenLabs Scribe API (texto + diarização) — key via env var ou `skills/video-use/.env`. Tier free serve para começar.
+
+**Sem Whisper.** Transcrição é 100% via ElevenLabs Scribe (hosted). O próprio video-use lista Whisper local como anti-pattern (lento, normaliza fillers, perde sub-second gaps).
 
 ## Stack bundled (vendored no plugin)
 

@@ -16,11 +16,12 @@ Passos:
    ```
    scripts/inspect_audio.py <source>.mp4 <start> <end> inspect/<clip>/ \
      --scribe edit/transcripts/<source>.json \
-     --scribe-video-start <abs_start_in_source> \
-     --whisper edit/transcripts/whisper_<clip>.json  # opcional
+     --scribe-video-start <abs_start_in_source>
    ```
-   Resultado: waveform.png + silences.txt + scribe_words.txt + whisper_words.txt + divergence.txt + summary.md
-   
+   Resultado: waveform.png + silences.txt + scribe_words.txt + summary.md.
+
+   Scribe (ElevenLabs) já entrega texto + timing word-level + diarização. Whisper local NÃO faz parte do pipeline padrão (anti-pattern do video-use: lento e normaliza fillers). O script `inspect_audio.py` aceita `--whisper` como opcional pra debug de divergência em casos extremos, mas isso é exceção, não default.
+
    **Apresentar ao user** o dossier e pedir timestamps exatos pra qualquer stutter cut. Não chutar.
 
 2. **Speaker-follow** (Hard Rule #6)
